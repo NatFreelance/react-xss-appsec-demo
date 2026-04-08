@@ -10,44 +10,39 @@ const PAYLOAD_IMG_ONERROR = `<p>DOM XSS test:</p><img src="x" onerror="alert('XS
 
 export function XssDemo() {
   const [mode, setMode] = useState('vulnerable') // 'vulnerable' | 'sanitized'
-  const [input, setInput] = useState(DEFAULT_INPUT)
+  const [draftInput, setDraftInput] = useState(DEFAULT_INPUT)
+  const [appliedInput, setAppliedInput] = useState(DEFAULT_INPUT)
 
-  const sanitizedHtml = useMemo(() => DOMPurify.sanitize(input), [input])
-  const renderedHtml = mode === 'sanitized' ? sanitizedHtml : input
-  const changedBySanitizer = sanitizedHtml !== input
-  const removedChars = Math.max(0, input.length - sanitizedHtml.length)
-  const reducedPercent = input.length > 0 ? Math.round((removedChars / input.length) * 100) : 0
+  const sanitizedHtml = useMemo(() => DOMPurify.sanitize(appliedInput), [appliedInput])
+  const renderedHtml = mode === 'sanitized' ? sanitizedHtml : appliedInput
+  const changedBySanitizer = sanitizedHtml !== appliedInput
+  const removedChars = Math.max(0, appliedInput.length - sanitizedHtml.length)
+  const reducedPercent =
+    appliedInput.length > 0 ? Math.round((removedChars / appliedInput.length) * 100) : 0
 
   const changeSummary = useMemo(() => {
     if (!changedBySanitizer) return []
     const removed = []
-    if (/<script[\s>]/i.test(input) && !/<script[\s>]/i.test(sanitizedHtml)) removed.push('Removed <script> tag')
-    if (/\sonerror\s*=/i.test(input) && !/\sonerror\s*=/i.test(sanitizedHtml)) removed.push('Removed inline event handler (onerror)')
-    if (/javascript:/i.test(input) && !/javascript:/i.test(sanitizedHtml)) removed.push('Removed javascript: URL')
+    if (/<script[\s>]/i.test(appliedInput) && !/<script[\s>]/i.test(sanitizedHtml))
+      removed.push('Removed <script> tag')
+    if (/\sonerror\s*=/i.test(appliedInput) && !/\sonerror\s*=/i.test(sanitizedHtml))
+      removed.push('Removed inline event handler (onerror)')
+    if (/javascript:/i.test(appliedInput) && !/javascript:/i.test(sanitizedHtml))
+      removed.push('Removed javascript: URL')
     if (removed.length === 0) removed.push('Sanitized output differs from input')
     return removed
-  }, [changedBySanitizer, input, sanitizedHtml])
+  }, [changedBySanitizer, appliedInput, sanitizedHtml])
 
   return (
     <section className="card">
       <div className="cardHeader">
         <div>
-          <div className="cardTitle">Live demo</div>
-          <div className="statusRow">
-            <span className={mode === 'sanitized' ? 'badge badgeOk' : 'badge badgeDanger'}>
-              Sanitization: {mode === 'sanitized' ? 'ON' : 'OFF'}
-            </span>
-            <span className="badge badgeNeutral">
-              {changedBySanitizer ? 'Input contains risky HTML' : 'No sanitizer changes detected'}
-            </span>
-            {changedBySanitizer ? (
-              <span className="badge badgeNeutral">
-                Δ chars: -{removedChars} ({reducedPercent}%)
-              </span>
-            ) : null}
+          <div className="cardTitle">Mode</div>
+          <div className="cardSubtitle">
+            Choose render mode, then click <strong>Submit</strong>.
           </div>
         </div>
-        <div className="segmented" role="group" aria-label="Render mode">
+        <div className="segmented" role="group" aria-label="Mode">
           <button
             type="button"
             className={mode === 'vulnerable' ? 'segmentedBtn active' : 'segmentedBtn'}
@@ -69,38 +64,41 @@ export function XssDemo() {
         <div className="panel">
           <div className="panelTitle">Input (attacker-controlled)</div>
           <div className="toolbar">
-            <button type="button" className="btn" onClick={() => setInput(PAYLOAD_SCRIPT)}>
-              Insert &lt;script&gt; payload
+            <button type="button" className="btn" onClick={() => setDraftInput(PAYLOAD_SCRIPT)}>
+              Insert &lt;script&gt;
             </button>
-            <button type="button" className="btn" onClick={() => setInput(PAYLOAD_IMG_ONERROR)}>
-              Insert onerror payload
+            <button type="button" className="btn" onClick={() => setDraftInput(PAYLOAD_IMG_ONERROR)}>
+              Insert onerror
             </button>
-            <button type="button" className="btn btnGhost" onClick={() => setInput(DEFAULT_INPUT)}>
+            <button
+              type="button"
+              className="btn btnPrimary"
+              onClick={() => setAppliedInput(draftInput)}
+              title="Apply input and render"
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              className="btn btnGhost"
+              onClick={() => {
+                setDraftInput(DEFAULT_INPUT)
+                setAppliedInput(DEFAULT_INPUT)
+              }}
+            >
               Reset
             </button>
           </div>
           <textarea
             className="textarea"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+            value={draftInput}
+            onChange={(e) => setDraftInput(e.target.value)}
             spellCheck={false}
           />
           <div className="hint">
-            In <strong>Vulnerable</strong> mode, this is rendered directly via{' '}
-            <code>dangerouslySetInnerHTML</code>. Switch to <strong>Sanitized</strong> to apply{' '}
-            <code>DOMPurify.sanitize()</code>.
+            Rendering uses <code>dangerouslySetInnerHTML</code>. In sanitized mode,{' '}
+            <code>DOMPurify.sanitize()</code> is applied before rendering.
           </div>
-
-          {changedBySanitizer ? (
-            <div className="notice">
-              <div className="noticeTitle">What DOMPurify would change</div>
-              <ul className="noticeList">
-                {changeSummary.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </div>
 
         <div className="panel">
@@ -109,13 +107,11 @@ export function XssDemo() {
             className={mode === 'vulnerable' ? 'output outputDanger' : 'output outputSafe'}
             dangerouslySetInnerHTML={{ __html: renderedHtml }}
           />
-          <div className="hint">Mode: <strong>{mode}</strong></div>
-
           <div className="splitTitle">Raw vs sanitized (for screenshots)</div>
           <div className="split">
             <div className="splitBox">
-              <div className="splitLabel">Raw input</div>
-              <pre className="codeBox">{input}</pre>
+              <div className="splitLabel">Applied input (raw)</div>
+              <pre className="codeBox">{appliedInput}</pre>
             </div>
             <div className="splitBox">
               <div className="splitLabel">Sanitized output</div>
@@ -123,6 +119,33 @@ export function XssDemo() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="cardFooter">
+        <div className="statusRow">
+          <span className={mode === 'sanitized' ? 'badge badgeOk' : 'badge badgeDanger'}>
+            Sanitization: {mode === 'sanitized' ? 'ON' : 'OFF'}
+          </span>
+          <span className="badge badgeNeutral">
+            {changedBySanitizer ? 'DOMPurify changed the applied input' : 'No sanitizer changes detected'}
+          </span>
+          {changedBySanitizer ? (
+            <span className="badge badgeNeutral">
+              Δ chars: -{removedChars} ({reducedPercent}%)
+            </span>
+          ) : null}
+        </div>
+
+        {changedBySanitizer ? (
+          <div className="notice">
+            <div className="noticeTitle">What DOMPurify changed (high level)</div>
+            <ul className="noticeList">
+              {changeSummary.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
     </section>
   )

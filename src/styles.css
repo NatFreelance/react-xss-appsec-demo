@@ -102,6 +102,18 @@ pre {
   font-weight: 700;
 }
 
+.cardSubtitle {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cardFooter {
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
 .statusRow {
   display: flex;
   flex-wrap: wrap;
@@ -202,6 +214,16 @@ pre {
 
 .btn:hover {
   border-color: rgba(124, 92, 255, 0.35);
+}
+
+.btnPrimary {
+  border-color: rgba(124, 92, 255, 0.45);
+  background: rgba(124, 92, 255, 0.22);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.btnPrimary:hover {
+  border-color: rgba(124, 92, 255, 0.65);
 }
 
 .btnGhost {
