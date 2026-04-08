@@ -56,6 +56,21 @@ This allows user-controlled input to be executed as JavaScript in the browser.
 
 ---
 
+## 🚀 Deploy (Netlify)
+
+If you see an error like:
+- `Failed to load module script ... MIME type of "application/octet-stream"`
+
+it usually means the site was deployed without running the Vite build.
+
+Use these Netlify settings:
+- **Build command**: `npm run build`
+- **Publish directory**: `dist`
+
+This repo includes `netlify.toml` with the correct defaults.
+
+---
+
 ## 🖼️ Screenshots (before vs after)
 
 ### Vulnerable mode (before fix)
