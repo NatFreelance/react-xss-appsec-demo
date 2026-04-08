@@ -56,6 +56,26 @@ This allows user-controlled input to be executed as JavaScript in the browser.
 
 ---
 
+## 🖼️ Screenshots (before vs after)
+
+### Vulnerable mode (before fix)
+
+**Attack 1 (onerror)**
+
+![Vulnerable - Attack 1 payload](src/screenshots/attack1-onerror.png)
+
+![Vulnerable - Attack 1 executed](src/screenshots/attack1-onerror-executed.png)
+
+**Attack 2 (onfocus)**
+
+![Vulnerable - Attack 2 executed](src/screenshots/attack2-onfocus-executed.png)
+
+### Sanitized mode (after fix)
+
+![Sanitized mode (DOMPurify)](src/screenshots/sanitized-mode.png)
+
+---
+
 ## 🧠 Root Cause Analysis
 
 - Direct injection of user input into DOM
