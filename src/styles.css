@@ -114,6 +114,14 @@ pre {
   border-top: 1px solid var(--border);
 }
 
+.actionBar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+  padding-bottom: 10px;
+}
+
 .statusRow {
   display: flex;
   flex-wrap: wrap;

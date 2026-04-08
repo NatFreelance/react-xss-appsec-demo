@@ -13,9 +13,9 @@ const ATTACK_1 = {
 
 const ATTACK_2 = {
   id: 'attack2',
-  label: 'Attack 2: <svg onload>',
-  payload: `<p>DOM XSS test (Attack 2)</p><svg xmlns="http://www.w3.org/2000/svg" onload="alert('XSS: onload executed')"></svg>`,
-  expected: `Expected behavior (Vulnerable): an alert should pop up ("XSS: onload executed"). This indicates attacker-controlled JS execution in the browser (DOM XSS).`,
+  label: 'Attack 2: <input autofocus onfocus>',
+  payload: `<p>DOM XSS test (Attack 2)</p><input autofocus onfocus="alert('XSS: onfocus executed')" />`,
+  expected: `Expected behavior (Vulnerable): an alert should pop up ("XSS: onfocus executed"). This indicates attacker-controlled JS execution in the browser (DOM XSS).`,
 }
 
 export function XssDemo() {
@@ -41,6 +41,8 @@ export function XssDemo() {
       removed.push('Removed inline event handler (onerror)')
     if (/\sonload\s*=/i.test(appliedInput) && !/\sonload\s*=/i.test(sanitizedHtml))
       removed.push('Removed inline event handler (onload)')
+    if (/\sonfocus\s*=/i.test(appliedInput) && !/\sonfocus\s*=/i.test(sanitizedHtml))
+      removed.push('Removed inline event handler (onfocus)')
     if (/javascript:/i.test(appliedInput) && !/javascript:/i.test(sanitizedHtml))
       removed.push('Removed javascript: URL')
     if (removed.length === 0) removed.push('Sanitized output differs from input')
@@ -115,27 +117,9 @@ export function XssDemo() {
               type="button"
               className={selectedAttackId === ATTACK_2.id ? 'btn btnSelected' : 'btn'}
               onClick={() => selectAttack(ATTACK_2.id)}
-              title="Uses <svg onload> which reliably executes in vulnerable mode"
+              title="Uses <input autofocus onfocus> which reliably executes in vulnerable mode"
             >
               Attack 2
-            </button>
-            <button
-              type="button"
-              className="btn btnPrimary"
-              onClick={run}
-              title="Apply input and render (Run)"
-            >
-              Run
-            </button>
-            <button
-              type="button"
-              className="btn btnGhost"
-              onClick={() => {
-                selectAttack(ATTACK_1.id)
-                setAppliedInput(DEFAULT_INPUT)
-              }}
-            >
-              Reset
             </button>
           </div>
           <textarea
@@ -172,6 +156,22 @@ export function XssDemo() {
       </div>
 
       <div className="cardFooter">
+        <div className="actionBar">
+          <button type="button" className="btn btnPrimary" onClick={run} title="Apply input and render (Run)">
+            Run
+          </button>
+          <button
+            type="button"
+            className="btn btnGhost"
+            onClick={() => {
+              selectAttack(ATTACK_1.id)
+              setAppliedInput(DEFAULT_INPUT)
+            }}
+          >
+            Reset
+          </button>
+        </div>
+
         <div className="statusRow">
           <span className={mode === 'sanitized' ? 'badge badgeOk' : 'badge badgeDanger'}>
             Sanitization: {mode === 'sanitized' ? 'ON' : 'OFF'}
