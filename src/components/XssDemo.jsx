@@ -2,16 +2,28 @@ import { useMemo, useState } from 'react'
 import DOMPurify from 'dompurify'
 
 const DEFAULT_INPUT = `<p>Hello!</p>
-<p>Try payload:</p>
-<pre>&lt;script&gt;alert('XSS')&lt;/script&gt;</pre>`
+<p>Select an attack and click <strong>Run</strong>.</p>`
 
-const PAYLOAD_SCRIPT = `<p>DOM XSS test:</p><script>alert('XSS')</script>`
-const PAYLOAD_IMG_ONERROR = `<p>DOM XSS test:</p><img src="x" onerror="alert('XSS via onerror')" />`
+const ATTACK_1 = {
+  id: 'attack1',
+  label: 'Attack 1: <img onerror>',
+  payload: `<p>DOM XSS test (Attack 1)</p><img src="x" onerror="alert('XSS: onerror executed')" />`,
+  expected: `Expected behavior (Vulnerable): an alert should pop up ("XSS: onerror executed"). This indicates attacker-controlled JS execution in the browser (DOM XSS).`,
+}
+
+const ATTACK_2 = {
+  id: 'attack2',
+  label: 'Attack 2: <svg onload>',
+  payload: `<p>DOM XSS test (Attack 2)</p><svg xmlns="http://www.w3.org/2000/svg" onload="alert('XSS: onload executed')"></svg>`,
+  expected: `Expected behavior (Vulnerable): an alert should pop up ("XSS: onload executed"). This indicates attacker-controlled JS execution in the browser (DOM XSS).`,
+}
 
 export function XssDemo() {
   const [mode, setMode] = useState('vulnerable') // 'vulnerable' | 'sanitized'
-  const [draftInput, setDraftInput] = useState(DEFAULT_INPUT)
+  const [selectedAttackId, setSelectedAttackId] = useState(ATTACK_1.id)
+  const [draftInput, setDraftInput] = useState(ATTACK_1.payload)
   const [appliedInput, setAppliedInput] = useState(DEFAULT_INPUT)
+  const [runMessage, setRunMessage] = useState('')
 
   const sanitizedHtml = useMemo(() => DOMPurify.sanitize(appliedInput), [appliedInput])
   const renderedHtml = mode === 'sanitized' ? sanitizedHtml : appliedInput
@@ -27,11 +39,31 @@ export function XssDemo() {
       removed.push('Removed <script> tag')
     if (/\sonerror\s*=/i.test(appliedInput) && !/\sonerror\s*=/i.test(sanitizedHtml))
       removed.push('Removed inline event handler (onerror)')
+    if (/\sonload\s*=/i.test(appliedInput) && !/\sonload\s*=/i.test(sanitizedHtml))
+      removed.push('Removed inline event handler (onload)')
     if (/javascript:/i.test(appliedInput) && !/javascript:/i.test(sanitizedHtml))
       removed.push('Removed javascript: URL')
     if (removed.length === 0) removed.push('Sanitized output differs from input')
     return removed
   }, [changedBySanitizer, appliedInput, sanitizedHtml])
+
+  const selectedAttack = selectedAttackId === ATTACK_2.id ? ATTACK_2 : ATTACK_1
+
+  function selectAttack(nextId) {
+    setSelectedAttackId(nextId)
+    const next = nextId === ATTACK_2.id ? ATTACK_2 : ATTACK_1
+    setDraftInput(next.payload)
+    setRunMessage('')
+  }
+
+  function run() {
+    setAppliedInput(draftInput)
+    if (mode === 'vulnerable') {
+      setRunMessage(`${selectedAttack.label}\n\n✅ ${selectedAttack.expected}`)
+    } else {
+      setRunMessage('')
+    }
+  }
 
   return (
     <section className="card">
@@ -39,21 +71,28 @@ export function XssDemo() {
         <div>
           <div className="cardTitle">Mode</div>
           <div className="cardSubtitle">
-            Choose render mode, then click <strong>Submit</strong>.
+            Vulnerable mode renders attacker-controlled HTML. Sanitized mode uses{' '}
+            <code>DOMPurify.sanitize()</code>.
           </div>
         </div>
         <div className="segmented" role="group" aria-label="Mode">
           <button
             type="button"
             className={mode === 'vulnerable' ? 'segmentedBtn active' : 'segmentedBtn'}
-            onClick={() => setMode('vulnerable')}
+            onClick={() => {
+              setMode('vulnerable')
+              setRunMessage('')
+            }}
           >
             Vulnerable
           </button>
           <button
             type="button"
             className={mode === 'sanitized' ? 'segmentedBtn active' : 'segmentedBtn'}
-            onClick={() => setMode('sanitized')}
+            onClick={() => {
+              setMode('sanitized')
+              setRunMessage('')
+            }}
           >
             Sanitized (DOMPurify)
           </button>
@@ -64,25 +103,35 @@ export function XssDemo() {
         <div className="panel">
           <div className="panelTitle">Input (attacker-controlled)</div>
           <div className="toolbar">
-            <button type="button" className="btn" onClick={() => setDraftInput(PAYLOAD_SCRIPT)}>
-              Insert &lt;script&gt;
+            <button
+              type="button"
+              className={selectedAttackId === ATTACK_1.id ? 'btn btnSelected' : 'btn'}
+              onClick={() => selectAttack(ATTACK_1.id)}
+              title="Uses <img onerror> which reliably executes in vulnerable mode"
+            >
+              Attack 1
             </button>
-            <button type="button" className="btn" onClick={() => setDraftInput(PAYLOAD_IMG_ONERROR)}>
-              Insert onerror
+            <button
+              type="button"
+              className={selectedAttackId === ATTACK_2.id ? 'btn btnSelected' : 'btn'}
+              onClick={() => selectAttack(ATTACK_2.id)}
+              title="Uses <svg onload> which reliably executes in vulnerable mode"
+            >
+              Attack 2
             </button>
             <button
               type="button"
               className="btn btnPrimary"
-              onClick={() => setAppliedInput(draftInput)}
-              title="Apply input and render"
+              onClick={run}
+              title="Apply input and render (Run)"
             >
-              Submit
+              Run
             </button>
             <button
               type="button"
               className="btn btnGhost"
               onClick={() => {
-                setDraftInput(DEFAULT_INPUT)
+                selectAttack(ATTACK_1.id)
                 setAppliedInput(DEFAULT_INPUT)
               }}
             >
@@ -96,8 +145,9 @@ export function XssDemo() {
             spellCheck={false}
           />
           <div className="hint">
-            Rendering uses <code>dangerouslySetInnerHTML</code>. In sanitized mode,{' '}
-            <code>DOMPurify.sanitize()</code> is applied before rendering.
+            Flow: pick <strong>Attack 1</strong> or <strong>Attack 2</strong>, then click{' '}
+            <strong>Run</strong>. In vulnerable mode you should see an alert. In sanitized mode you
+            should not.
           </div>
         </div>
 
@@ -135,6 +185,13 @@ export function XssDemo() {
             </span>
           ) : null}
         </div>
+
+        {mode === 'vulnerable' && runMessage ? (
+          <div className="runMessage">
+            <div className="runMessageTitle">Run result</div>
+            <div className="runMessageBody">{runMessage}</div>
+          </div>
+        ) : null}
 
         {changedBySanitizer ? (
           <div className="notice">

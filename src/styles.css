@@ -216,6 +216,11 @@ pre {
   border-color: rgba(124, 92, 255, 0.35);
 }
 
+.btnSelected {
+  border-color: rgba(124, 92, 255, 0.65);
+  background: rgba(124, 92, 255, 0.18);
+}
+
 .btnPrimary {
   border-color: rgba(124, 92, 255, 0.45);
   background: rgba(124, 92, 255, 0.22);
@@ -293,6 +298,27 @@ pre {
   color: rgba(255, 255, 255, 0.85);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.runMessage {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(49, 208, 170, 0.28);
+  background: rgba(49, 208, 170, 0.08);
+  padding: 12px;
+}
+
+.runMessageTitle {
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.runMessageBody {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
 }
 
 .splitTitle {
