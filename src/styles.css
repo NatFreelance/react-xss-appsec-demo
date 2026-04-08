@@ -102,6 +102,40 @@ pre {
   font-weight: 700;
 }
 
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+}
+
+.badgeOk {
+  border-color: rgba(49, 208, 170, 0.35);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.badgeDanger {
+  border-color: rgba(255, 77, 109, 0.35);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.badgeNeutral {
+  border-color: rgba(124, 92, 255, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .segmented {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border);
@@ -148,6 +182,33 @@ pre {
   margin-bottom: 10px;
 }
 
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.btn:hover {
+  border-color: rgba(124, 92, 255, 0.35);
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--muted);
+}
+
 .textarea {
   width: 100%;
   min-height: 260px;
@@ -190,6 +251,66 @@ pre {
   line-height: 1.45;
 }
 
+.notice {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 92, 255, 0.3);
+  background: rgba(124, 92, 255, 0.1);
+  padding: 12px;
+}
+
+.noticeTitle {
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.noticeList {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.splitTitle {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.splitBox {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.splitLabel {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.codeBox {
+  margin: 0;
+  padding: 10px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;
@@ -204,6 +325,9 @@ pre {
   .cardHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .split {
+    grid-template-columns: 1fr;
   }
 }
 
