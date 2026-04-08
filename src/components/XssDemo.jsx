@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 
 const DEFAULT_INPUT = `<p>Hello!</p>
@@ -14,8 +14,8 @@ const ATTACK_1 = {
 const ATTACK_2 = {
   id: 'attack2',
   label: 'Attack 2: <input autofocus onfocus>',
-  payload: `<p>DOM XSS test (Attack 2)</p><input autofocus onfocus="alert('XSS: onfocus executed')" />`,
-  expected: `Expected behavior (Vulnerable): an alert should pop up ("XSS: onfocus executed"). This indicates attacker-controlled JS execution in the browser (DOM XSS).`,
+  payload: `<p>DOM XSS test (Attack 2)</p><input autofocus onfocus="alert('XSS: onfocus executed'); this.blur();" />`,
+  expected: `Expected behavior (Vulnerable): an alert should pop up once ("XSS: onfocus executed"). The payload then removes focus (blur) to avoid repeated triggers. This indicates attacker-controlled JS execution in the browser (DOM XSS).`,
 }
 
 export function XssDemo() {
@@ -24,6 +24,7 @@ export function XssDemo() {
   const [draftInput, setDraftInput] = useState(ATTACK_1.payload)
   const [appliedInput, setAppliedInput] = useState(DEFAULT_INPUT)
   const [runMessage, setRunMessage] = useState('')
+  const runBtnRef = useRef(null)
 
   const sanitizedHtml = useMemo(() => DOMPurify.sanitize(appliedInput), [appliedInput])
   const renderedHtml = mode === 'sanitized' ? sanitizedHtml : appliedInput
@@ -65,6 +66,10 @@ export function XssDemo() {
     } else {
       setRunMessage('')
     }
+
+    // Return focus to UI so the demo remains controllable,
+    // especially for focus-based payloads in vulnerable mode.
+    queueMicrotask(() => runBtnRef.current?.focus())
   }
 
   return (
@@ -157,7 +162,13 @@ export function XssDemo() {
 
       <div className="cardFooter">
         <div className="actionBar">
-          <button type="button" className="btn btnPrimary" onClick={run} title="Apply input and render (Run)">
+          <button
+            ref={runBtnRef}
+            type="button"
+            className="btn btnPrimary"
+            onClick={run}
+            title="Apply input and render (Run)"
+          >
             Run
           </button>
           <button
