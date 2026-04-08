@@ -12,6 +12,8 @@ Background: 8+ years in Information Security + Frontend Development (React, Qt/Q
 
 This project demonstrates a real-world Cross-Site Scripting (XSS) vulnerability in a React application and how to properly mitigate it.
 
+Live demo: `https://aesthetic-bubblegum-cbc86d.netlify.app`
+
 It is designed to showcase:
 - secure coding practices
 - understanding of frontend attack surface
